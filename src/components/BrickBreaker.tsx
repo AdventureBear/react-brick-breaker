@@ -1,11 +1,7 @@
-import {useRef, useEffect, useState, Context} from 'react'
+import {useRef, useEffect, useState} from 'react'
 
 const width = 500
 const height = 300
-const x = 200;      // starting horizontal position of ball
-const y = 150;      // starting vertical position of ball
-const dx = 1;       // amount ball should move horizontally
-const dy = -3;      // amount ball should move vertically
 const paddleH = 10; // paddle height (pixels)
 const paddleW = 75; // paddle width (pixels)
 const paddleColor = "black";
@@ -27,6 +23,12 @@ function BrickBreaker() {
     const [isPaused, setIsPaused] = useState<boolean>(false);
     const [paddleX, setPaddleX] = useState<number>(width/2)
     const [bricks, setBricks] = useState<boolean[][]>([]);
+    const [x, setX] = useState( 200)
+    const [y, setY] = useState( 200)
+    const [dx, setDx] = useState( 1)
+    const [dy, setDy] = useState( -3)
+
+
     // Function to initialize bricks
         const initBricks = () => {
             const initialBricks = new Array<boolean[]>(nrows);
@@ -89,13 +91,7 @@ function BrickBreaker() {
                     cancelAnimationFrame(animation.current);
                 }
             };
-        }, [isPaused, paddleX, bricks]);
-
-        function rect(context: CanvasRenderingContext2D, x: number,y: number,w: number,h: number) {
-            context.beginPath();
-            context.rect(x, y, w, h);
-            context.closePath();
-        }
+        }, [isPaused, paddleX, bricks, x, y]);
 
     // render the bricks
     function drawBricks(context: CanvasRenderingContext2D) {
@@ -122,7 +118,6 @@ function BrickBreaker() {
         if (contextRef.current) {
             const context = contextRef.current;
 
-
             // Clear the canvas
             context.clearRect(0, 0, width, height);
 
@@ -138,6 +133,28 @@ function BrickBreaker() {
             circle(context, x, y, ballRadius)
 
             context.fill();
+
+            //contain the ball by rebouding it off the walls of the canvas
+            if (x + dx > width || x + dx < 0)
+                setDx(-dx);
+
+            if (y + dy < 0) {
+                setDy(-dy);
+
+            } else if (y + dy > height - paddleH) {
+                // check if the ball is hitting the
+                // paddle and if it is rebound it
+                if (x > paddleX && x < paddleX + paddleW) {
+                    setDy(-dy);
+                }
+            }
+            if (y + dy > height) {
+                //game over, so stop the animation
+                // stop_animation();
+            }
+            setX((prev)=> prev + dx);
+            setY((prev)=> prev + dy);
+
             }
         }
 
