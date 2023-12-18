@@ -1,13 +1,17 @@
 
 import './App.css'
-import {Canvas} from "./components/Canvas.tsx";
-
+import './components/BrickBreaker.tsx'
+import BrickBreaker from './components/BrickBreaker.tsx';
 function App() {
 
 
   return (
-      <Canvas width={500} height={300}/>
+      <>
+      <h1>Hello World</h1>
+      <BrickBreaker />
+      </>
   )
+
 }
 
 export default App
