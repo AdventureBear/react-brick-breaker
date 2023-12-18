@@ -2,6 +2,10 @@ import {useRef, useEffect, useState, Context} from 'react'
 
 const width = 500
 const height = 300
+const x = 200;      // starting horizontal position of ball
+const y = 150;      // starting vertical position of ball
+const dx = 1;       // amount ball should move horizontally
+const dy = -3;      // amount ball should move vertically
 const paddleH = 10; // paddle height (pixels)
 const paddleW = 75; // paddle width (pixels)
 const paddleColor = "black";
@@ -11,7 +15,8 @@ const nrows = 5; // number of rows of bricks
 const brickHeight = 15; // height of each brick
 const padding = 1;  // how far apart bricks are spaced
 const brick_colors = ["#DCFFFD", "#52FFEE", "#4FB477", "#3F6634", "#345511"];
-
+const ballRadius = 10; // size of ball (pixels)
+const ballColor = "black"
 
 
 function BrickBreaker() {
@@ -106,6 +111,12 @@ function BrickBreaker() {
         }
     }
 
+    function circle(context: CanvasRenderingContext2D, x: number,y: number,r: number) {
+        context.beginPath();
+        context.arc(x, y, r, 0, Math.PI*2, true);
+        context.closePath();
+        context.fill();
+    }
 
     function draw() {
         if (contextRef.current) {
@@ -117,10 +128,14 @@ function BrickBreaker() {
 
             // Draw the paddle
             context.fillStyle = paddleColor;
-            rect(context, paddleX, height - paddleH, paddleW, paddleH);
+            context.fillRect(paddleX, height - paddleH, paddleW, paddleH);
 
             // Draw the bricks
             drawBricks(context)
+
+            //Draw the ball
+            context.fillStyle = ballColor;
+            circle(context, x, y, ballRadius)
 
             context.fill();
             }
