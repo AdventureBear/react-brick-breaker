@@ -20,14 +20,17 @@ function BrickBreaker() {
     const contextRef = useRef<CanvasRenderingContext2D | null>(null);
     const animation = useRef<number>();
 
-    const [isPaused, setIsPaused] = useState<boolean>(false);
+    const [paused, setPaused] = useState<boolean>(false);
     const [paddleX, setPaddleX] = useState<number>(width/2)
     const [bricks, setBricks] = useState<boolean[][]>([]);
     const [x, setX] = useState( 200)
     const [y, setY] = useState( 200)
     const [dx, setDx] = useState( 1)
     const [dy, setDy] = useState( -3)
-
+    const [gameOver, setGameOver] = useState(false  )
+    const rowheight = brickHeight + padding;
+    const colwidth = brickWidth + padding;
+    const [score, setScore] = useState(0);
 
     // Function to initialize bricks
         const initBricks = () => {
@@ -59,6 +62,8 @@ function BrickBreaker() {
                 setPaddleX(newX);
             };
 
+
+
             canvas.addEventListener('mousemove', handleMouseMove);
 
             setBricks(initBricks());
@@ -70,13 +75,14 @@ function BrickBreaker() {
         }, []);
 
         useEffect(() => {
+            const handleKeyDown = () => {
 
+                    setPaused(prev => !prev); // Toggle pause state
+            };
+
+            window.addEventListener("keydown", handleKeyDown);
             const updateGame = () => {
-                if (!isPaused) {
-                    // Game logic here
-
-
-
+                if (!paused) {
                     // Redraw the canvas
                     draw()
                     // Continue the loop
@@ -90,8 +96,12 @@ function BrickBreaker() {
                 if (animation.current) {
                     cancelAnimationFrame(animation.current);
                 }
+                window.removeEventListener("keydown", handleKeyDown)
             };
-        }, [isPaused, paddleX, bricks, x, y]);
+        }, [paused, paddleX, bricks, x, y]);
+
+
+
 
     // render the bricks
     function drawBricks(context: CanvasRenderingContext2D) {
@@ -105,6 +115,16 @@ function BrickBreaker() {
                 }
             }
         }
+    }
+
+    function init(){
+        setBricks(initBricks());
+        setGameOver(false)
+        setPaused(false)
+        setX(200)
+        setY(200)
+        setDy(-3)
+        setScore(0)
     }
 
     function circle(context: CanvasRenderingContext2D, x: number,y: number,r: number) {
@@ -134,35 +154,80 @@ function BrickBreaker() {
 
             context.fill();
 
-            //contain the ball by rebouding it off the walls of the canvas
-            if (x + dx > width || x + dx < 0)
+            // Calculate row and column for collision detection
+            const currentRow = Math.floor(y / rowheight);
+            const currentCol = Math.floor(x / colwidth);
+            console.log(currentRow, currentCol)
+
+            //check for brick collision
+
+                if (y < nrows * rowheight && currentRow >= 0 && currentCol >= 0 && bricks[currentRow][currentCol]) {
+                    setDy(-dy)
+                    bricks[currentRow][currentCol] = false;
+
+                    //update score
+                    setScore(score+1)
+                }
+
+
+
+            //contain the ball by rebounding it off the walls of the canvas
+            // side walls
+            if (x + ballRadius  + dx > width || x - ballRadius + dx < 0)
                 setDx(-dx);
 
-            if (y + dy < 0) {
+            // top
+            if (y - ballRadius + dy < 0) {
                 setDy(-dy);
 
-            } else if (y + dy > height - paddleH) {
-                // check if the ball is hitting the
-                // paddle and if it is rebound it
+            //bottom
+            } else if (y + ballRadius + dy > height - paddleH) {
+                //paddle
                 if (x > paddleX && x < paddleX + paddleW) {
                     setDy(-dy);
                 }
             }
+            //bottom edge
             if (y + dy > height) {
                 //game over, so stop the animation
-                // stop_animation();
+                setGameOver(true)
+                return
             }
             setX((prev)=> prev + dx);
             setY((prev)=> prev + dy);
 
+
+            }
+            setBricks([...bricks]);
+        }
+
+        if (gameOver) {
+            // console.log("stopping animation")
+            if (animation.current) {
+                // console.log("animation current", animation)
+                cancelAnimationFrame(animation.current);
             }
         }
 
 
+
+
+
     return (
-        <canvas
-            ref={canvasRef}
-        />
+        <>
+            <div>
+                <canvas
+                    ref={canvasRef}
+                />
+            </div>
+
+            <p>Mouse moves platform &bull; Press any key to pause</p>
+
+                <button onClick={init}>Play again</button>
+
+                <div id="score">{score}</div>
+
+        </>
     );
 }
 
